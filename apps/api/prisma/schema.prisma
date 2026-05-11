@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum InvoiceStatus {
+  draft
+  issued
+  paid
+  void
+}
+
+model Invoice {
+  id String @id @default(cuid())
+
+  number String @unique
+
+  customerName  String
+  customerEmail String
+
+  lineItems InvoiceLineItem[]
+
+  currency String @db.VarChar(3)
+
+  subtotalMinor Int
+  taxMinor      Int
+  totalMinor    Int
+
+  taxRateBps Int
+
+  issuedAt DateTime?
+  dueAt    DateTime?
+
+  status InvoiceStatus @default(draft)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InvoiceLineItem {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  description String
+
+  quantity Int
+
+  unitPriceMinor Int
+
+  createdAt DateTime @default(now())
+}
+
+model InvoiceCounter {
+  id String @id @default(cuid())
+
+  yearMonth String @unique
+
+  current Int
+}
