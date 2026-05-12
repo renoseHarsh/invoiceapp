@@ -5,6 +5,7 @@
     "moduleResolution": "bundler",
     "declaration": true,
     "outDir": "./dist",
+    "ignoreDeprecations": "6.0",
     "rootDir": "./src",
     "strict": true,
     "skipLibCheck": true,

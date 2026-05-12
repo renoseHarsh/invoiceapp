@@ -34,10 +34,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <router-link to="/invoices/new" class="rounded bg-black text-white px-4 py-2">
-    Create Invoice
-  </router-link>
-
   <div v-if="error" class="rounded border border-red-500/20 bg-red-500/10 p-4 text-red-500">
     {{ error }}
   </div>

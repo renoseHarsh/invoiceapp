@@ -16,14 +16,15 @@ function createNumber(dateKey: string, counter: number): string {
   return `INV-${dateKey}-${String(counter).padStart(4, "0")}`;
 }
 
-function roundHalfEven(num: number) {
-  const floor = Math.floor(num);
-  const diff = num - floor;
+function calculateTax(subtotalMinor: number, taxBps: number) {
+  const product = subtotalMinor * taxBps;
+  const quotient = Math.floor(product / 10_000);
+  const remainder = product % 10_0000;
 
-  if (diff < 0.5) return floor;
-  if (diff > 0.5) return floor + 1;
+  if (remainder < 5000) return quotient + 1;
+  if (remainder > 5000) return quotient;
 
-  return floor % 2 === 0 ? floor : floor + 1;
+  return quotient % 2 === 0 ? quotient : quotient + 1;
 }
 
 export async function createInvoice(body: CreateInvoiceBody) {
@@ -33,7 +34,7 @@ export async function createInvoice(body: CreateInvoiceBody) {
     0,
   );
 
-  const taxMinor = roundHalfEven(subtotalMinor * (body.taxRateBps / 10_000));
+  const taxMinor = calculateTax(subtotalMinor, body.taxRateBps);
 
   const totalMinor = subtotalMinor + taxMinor;
   const yearMonth = getDateKey();

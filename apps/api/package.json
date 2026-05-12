@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/index.tsx",
-    "build": "tsup src/index.tsx --format esm --out-dir dist"
+    "build": "tsup src/index.ts --format esm --out-dir dist"
   },
   "keywords": [],
   "author": "",

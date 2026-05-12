@@ -19,6 +19,8 @@ RUN pnpm install
 
 COPY . .
 
+RUN pnpm --filter api exec prisma generate
+
 RUN pnpm build
 
 CMD ["sh", "-c", "pnpm --filter api exec prisma migrate deploy && pnpm start"]

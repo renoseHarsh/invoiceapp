@@ -4,6 +4,7 @@ import {
   Text,
   View,
   StyleSheet,
+  renderToStream,
 
 } from "@react-pdf/renderer";
 
@@ -171,3 +172,7 @@ export function InvoicePdf({ invoice }: Props) {
     </Document>
   );
 }
+
+export const generatePdfStream = async (invoiceData: GetInvoiceData) => {
+  return await renderToStream(<InvoicePdf invoice={invoiceData} />);
+};

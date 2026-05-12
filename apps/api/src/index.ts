@@ -1,5 +1,4 @@
 import Fastify from "fastify";
-import { InvoicePdf } from "./service/genpdf";
 import {
   createInvoice,
   getInvoice,
@@ -13,13 +12,11 @@ import {
 } from "shared";
 import cors from "@fastify/cors";
 import type { InvoiceStatus } from "../generated/prisma/enums";
-import ReactPDF from "@react-pdf/renderer";
 import fastifyStatic from "@fastify/static";
 import path from "path";
+import { generatePdfStream } from "./service/genpdf";
 
-const fastify = Fastify(
-  { logger: true }
-);
+const fastify = Fastify({ logger: true });
 
 await fastify.register(cors, {
   origin: "*",
@@ -30,6 +27,13 @@ await fastify.register(fastifyStatic, {
   root: path.join(process.cwd(), "apps/web/dist"),
 });
 
+fastify.setNotFoundHandler((request, reply) => {
+  if (request.url.startsWith("/api/")) {
+    reply.code(404).send({ error: "API route not found" });
+  } else {
+    reply.sendFile("index.html");
+  }
+});
 
 fastify.post("/api/invoices", async (request, reply) => {
   const validationResult = CreateInvoiceSchema.safeParse(request.body);
@@ -87,18 +91,17 @@ fastify.get<{
 
 fastify.get<{
   Params: {
-    id: string
-  }
+    id: string;
+  };
 }>("/api/invoices/:id/pdf", async (request, reply) => {
-  const id = Number(request.params.id)
-  const invoice = await getInvoice(id)
-  if (!invoice) return reply.status(404).send()
-  const stream = await ReactPDF.renderToStream(
-    <InvoicePdf invoice={invoice} />,);
-  return reply.type("application/pdf").send(stream)
-})
+  const id = Number(request.params.id);
+  const invoice = await getInvoice(id);
+  if (!invoice) return reply.status(404).send();
+  const steam = await generatePdfStream(invoice);
+  return reply.type("application/pdf").send(steam);
+});
 
-fastify.listen({ port: 3000, host: '0.0.0.0' }, function(err) {
+fastify.listen({ port: 3000, host: "0.0.0.0" }, function (err) {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
