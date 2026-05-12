@@ -2,8 +2,11 @@
   "name": "shared",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm"
+  },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
   },
   "dependencies": {
     "zod": "^4.4.3"

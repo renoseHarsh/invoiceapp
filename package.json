@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm -r --parallel dev",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "pnpm -r --parallel build",
+    "start": "node apps/api/dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -13,9 +14,13 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "^11.0.9",
+      "version": "11.0.9",
       "onFail": "download"
     }
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
+  }
 }

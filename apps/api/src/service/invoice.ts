@@ -2,6 +2,7 @@ import type {
   CreateInvoiceBody,
   GetInvoiceData,
   InvoiceLineItem,
+  PaginatedInvoice,
 } from "shared";
 import { prisma } from "../lib/prisma";
 import type { InvoiceStatus } from "../../generated/prisma/enums";
@@ -97,6 +98,7 @@ export async function getInvoice(id: number): Promise<GetInvoiceData | null> {
   if (!invoice) return null;
 
   return {
+    id: invoice.id,
     customerName: invoice.customerName,
     customerEmail: invoice.customerEmail,
     currency: invoice.currency,
@@ -153,4 +155,33 @@ export async function updateStatus(
   });
 
   return 200;
+}
+
+export async function getPaginatedList(
+  page: number,
+): Promise<PaginatedInvoice> {
+  const pageSize = 10;
+
+  const items = await prisma.invoice.findMany({
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+    orderBy: {
+      createdAt: "desc",
+    },
+
+    select: {
+      id: true,
+      number: true,
+      customerName: true,
+      status: true,
+      totalMinor: true,
+      currency: true,
+    },
+  });
+
+  const totalItem = await prisma.invoice.count();
+
+  const totalPages = Math.ceil(totalItem / pageSize);
+
+  return { items, page, totalPages };
 }

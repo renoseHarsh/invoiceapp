@@ -10,7 +10,7 @@ const invoice = ref<GetInvoiceData | null>(null)
 
 async function loadInvoice() {
   try {
-    const res = await fetch(`http://localhost:3000/invoices/${route.params.id}`)
+    const res = await fetch(`http://localhost:3000/api/invoices/${route.params.id}`)
     if (!res.ok) {
       error.value = `Faile to fetch, status ${res.status}`
       return
@@ -23,7 +23,8 @@ async function loadInvoice() {
       return
     }
     invoice.value = data.data
-  } catch {
+  } catch (some) {
+    console.log(some)
     error.value = 'Server Error'
   }
 }
@@ -32,7 +33,7 @@ onMounted(loadInvoice)
 
 async function updateStatus(status: InvoiceStatus) {
   try {
-    const res = await fetch(`http://localhost:3000/invoices/${id}/status`, {
+    const res = await fetch(`http://localhost:3000/api/invoices/${id}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -48,6 +49,10 @@ async function updateStatus(status: InvoiceStatus) {
   } catch {
     error.value = 'Server Error'
   }
+}
+
+function openPdf() {
+  window.open(`http://localhost:3000/api/invoices/${invoice.value!.id}/pdf`)
 }
 </script>
 
@@ -86,7 +91,9 @@ async function updateStatus(status: InvoiceStatus) {
             </button>
           </div>
 
-          <button class="rounded bg-black text-white px-4 py-2">Download PDF</button>
+          <button @click="openPdf" class="rounded bg-black text-white px-4 py-2">
+            Download PDF
+          </button>
         </div>
       </div>
 

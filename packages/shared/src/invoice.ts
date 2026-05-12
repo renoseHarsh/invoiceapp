@@ -29,6 +29,7 @@ export type CreateInvoiceBody = z.infer<typeof CreateInvoiceSchema>;
 
 export const InvoiceSchema = z.object({
   ...common_data,
+  id: z.number().nonoptional(),
   dueAt: z.string().datetime().nonoptional(),
   number: z
     .string()
@@ -42,3 +43,23 @@ export const InvoiceSchema = z.object({
   createdAt: z.string().datetime().nonoptional(),
 });
 export type GetInvoiceData = z.infer<typeof InvoiceSchema>;
+
+export const MiniInvoiceSchema = z.object({
+  id: z.number().nonoptional(),
+  number: z
+    .string()
+    .regex(/^INV-\d{6}-\d{4}$/, "Invalid invoice number format")
+    .nonoptional(),
+  customerName: z.string().min(1, "Customer name is required"),
+  status: z.enum(["draft", "issued", "paid", "void"]).nonoptional(),
+  totalMinor: z.number().nonoptional(),
+  currency: z.string().length(3),
+});
+export type MiniInvoiceData = z.infer<typeof MiniInvoiceSchema>;
+
+export const PaginatedInvoiceSchema = z.object({
+  items: z.array(MiniInvoiceSchema),
+  page: z.number().min(1).nonoptional(),
+  totalPages: z.number().nonoptional(),
+});
+export type PaginatedInvoice = z.infer<typeof PaginatedInvoiceSchema>;
