@@ -20,7 +20,7 @@ enum InvoiceStatus {
 }
 
 model Invoice {
-  id String @id @default(cuid())
+  id Int @id @default(autoincrement())
 
   number String @unique
 
@@ -38,7 +38,7 @@ model Invoice {
   taxRateBps Int
 
   issuedAt DateTime?
-  dueAt    DateTime?
+  dueAt    DateTime
 
   status InvoiceStatus @default(draft)
 
@@ -47,9 +47,9 @@ model Invoice {
 }
 
 model InvoiceLineItem {
-  id String @id @default(cuid())
+  id Int @id @default(autoincrement())
 
-  invoiceId String
+  invoiceId Int
   invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   description String
@@ -62,7 +62,7 @@ model InvoiceLineItem {
 }
 
 model InvoiceCounter {
-  id String @id @default(cuid())
+  id Int @id @default(autoincrement())
 
   yearMonth String @unique
 
