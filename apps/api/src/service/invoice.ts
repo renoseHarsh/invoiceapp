@@ -1,5 +1,10 @@
-import type { CreateInvoiceBody } from "shared";
+import type {
+  CreateInvoiceBody,
+  GetInvoiceData,
+  InvoiceLineItem,
+} from "shared";
 import { prisma } from "../lib/prisma";
+import type { InvoiceStatus } from "../../generated/prisma/enums";
 
 function getDateKey(): string {
   const now = new Date();
@@ -22,7 +27,8 @@ function roundHalfEven(num: number) {
 
 export async function createInvoice(body: CreateInvoiceBody) {
   const subtotalMinor = body.lineItems.reduce(
-    (acc, item) => acc + item.quantity * item.unitPriceMinor,
+    (acc: number, item: InvoiceLineItem) =>
+      acc + item.quantity * item.unitPriceMinor,
     0,
   );
 
@@ -62,7 +68,7 @@ export async function createInvoice(body: CreateInvoiceBody) {
         customerEmail: body.customerEmail,
 
         lineItems: {
-          create: body.lineItems.map((item) => ({
+          create: body.lineItems.map((item: InvoiceLineItem) => ({
             description: item.description,
             quantity: item.quantity,
             unitPriceMinor: item.unitPriceMinor,
@@ -78,4 +84,73 @@ export async function createInvoice(body: CreateInvoiceBody) {
       },
     });
   }); // commit
+}
+
+export async function getInvoice(id: number): Promise<GetInvoiceData | null> {
+  const invoice = await prisma.invoice.findUnique({
+    where: { id },
+    include: {
+      lineItems: true,
+    },
+  });
+
+  if (!invoice) return null;
+
+  return {
+    customerName: invoice.customerName,
+    customerEmail: invoice.customerEmail,
+    currency: invoice.currency,
+    taxRateBps: invoice.taxRateBps,
+    dueAt: invoice.dueAt.toISOString(),
+    lineItems: invoice.lineItems.map((item) => ({
+      description: item.description,
+      quantity: item.quantity,
+      unitPriceMinor: item.unitPriceMinor,
+    })),
+    number: invoice.number,
+    status: invoice.status,
+    subtotalMinor: invoice.subtotalMinor,
+    taxMinor: invoice.taxMinor,
+    totalMinor: invoice.totalMinor,
+    issuedAt: invoice.issuedAt?.toISOString() ?? null,
+    createdAt: invoice.createdAt.toISOString(),
+  };
+}
+
+export async function updateStatus(
+  id: number,
+  status: InvoiceStatus,
+): Promise<200 | 404 | 403> {
+  const invoice = await prisma.invoice.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!invoice) return 404;
+
+  let canUpdate = false;
+  const update: {
+    status: InvoiceStatus;
+    issuedAt?: Date;
+  } = { status };
+
+  if (invoice.status === "draft" && status === "issued") {
+    update.issuedAt = new Date();
+    canUpdate = true;
+  } else if (
+    invoice.status == "issued" &&
+    (status == "paid" || status == "void")
+  ) {
+    canUpdate = true;
+  }
+
+  if (!canUpdate) return 403;
+
+  await prisma.invoice.update({
+    where: { id },
+    data: update,
+  });
+
+  return 200;
 }
