@@ -90,19 +90,15 @@ Then open:
 
 # One Thing in the Spec I'd Push Back On
 
-## Enforcing Gapless Numbering at Draft Creation
+## Server-Side PDF Rendering
 
-Generating strict sequential invoice numbers at the moment a draft is created introduces unnecessary database contention and increases the risk of gaps if drafts are abandoned or deleted.
+The spec requires PDFs to be generated on the server using `@react-pdf/renderer`. This pulls React into the backend stack purely for PDF generation, adding build complexity and a production dependency that isn't needed elsewhere.
 
-Instead, I would propose:
+Since the API already sends all invoice data to the client, I would propose rendering the PDF client-side instead (e.g., using a browser-based PDF library). This:
 
-- Using a UUID as the internal database identifier
-- Generating the user-facing sequential invoice number only when the invoice transitions from `draft` → `issued`
-
-This approach:
-- Removes the serialization bottleneck during draft creation
-- Prevents gaps caused by abandoned drafts
-- Keeps strict sequence guarantees only where they matter
+- Removes React from the server, simplifying the backend
+- Gives the user instant feedback — no round-trip to generate the PDF
+- Lets the browser handle the rendering, which it's already optimized for
 
 ---
 
